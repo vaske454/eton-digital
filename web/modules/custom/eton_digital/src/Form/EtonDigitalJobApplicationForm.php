@@ -154,6 +154,8 @@ class EtonDigitalJobApplicationForm extends FormBase
    *   The form structure.
    * @param FormStateInterface $form_state
    *   The form state.
+   *
+   * @throws \Exception
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     // Get form values.
@@ -189,6 +191,19 @@ class EtonDigitalJobApplicationForm extends FormBase
       Drupal::messenger()->addError('Unable to send email. Contact the site administrator if the problem persists.');
       return;
     }
+
+    //store data in database
+    $connection = Drupal::database();
+    $query = $connection->insert('job_applications')
+      ->fields([
+        'name' => $name,
+        'email' => $email,
+        'type ' => $type,
+        'technology' => $technology,
+        'message' => $message,
+        'submitted' => $submitted,
+      ]);
+    $query->execute();
 
     // Success message.
     Drupal::messenger()->addMessage('E-mail sent successfully.');

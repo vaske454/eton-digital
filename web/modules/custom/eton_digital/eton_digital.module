@@ -70,6 +70,11 @@ function eton_digital_uninstall(bool $is_syncing): void {
   // Remove your custom mailer from the list of mail plugins.
   unset($mail_plugins['eton_digital']);
   $config->set('interface', $mail_plugins)->save();
+
+  // Drop the custom table from the database.
+  if (\Drupal::database()->schema()->tableExists('job_applications')) {
+    \Drupal::database()->schema()->dropTable('job_applications');
+  }
 }
 
 /**
@@ -115,6 +120,11 @@ function eton_digital_schema(): array {
         'description' => 'Message of applicant.',
         'type' => 'text',
         'size' => 'normal',
+      ],
+      'submitted' => [
+        'description' => 'Time of submission of the applicant.',
+        'type' => 'int',
+        'not null' => TRUE,
       ],
     ],
     'primary key' => ['id'],
