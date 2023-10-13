@@ -71,3 +71,57 @@ function eton_digital_uninstall(bool $is_syncing): void {
   unset($mail_plugins['eton_digital']);
   $config->set('interface', $mail_plugins)->save();
 }
+
+/**
+ * Implements hook_schema()
+ */
+/**
+ * Implements hook_schema().
+ */
+function eton_digital_schema(): array {
+  $schema = [];
+
+  $schema['job_applications'] = [
+    'description' => 'The table that holds job applications',
+    'fields' => [
+      'id' => [
+        'description' => 'The primary identifier.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ],
+      'name' => [
+        'description' => 'Name of applicant.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ],
+      'email' => [
+        'description' => 'Email of applicant.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ],
+      'type' => [
+        'description' => 'Type of applicant.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ],
+      'technology' => [
+        'description' => 'Technology of applicant.',
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+      ],
+      'message' => [
+        'description' => 'Message of applicant.',
+        'type' => 'text',
+        'size' => 'normal',
+      ],
+    ],
+    'primary key' => ['id'],
+  ];
+
+  return $schema;
+}
