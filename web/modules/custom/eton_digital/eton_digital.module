@@ -75,9 +75,6 @@ function eton_digital_uninstall(bool $is_syncing): void {
 /**
  * Implements hook_schema()
  */
-/**
- * Implements hook_schema().
- */
 function eton_digital_schema(): array {
   $schema = [];
 
