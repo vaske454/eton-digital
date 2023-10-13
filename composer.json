@@ -19,7 +19,8 @@
         "drupal/core-composer-scaffold": "^10.1",
         "drupal/core-project-message": "^10.1",
         "drupal/core-recommended": "^10.1",
-        "drush/drush": "^12.2"
+        "drush/drush": "^12.2",
+        "sendgrid/sendgrid": "^8.0"
     },
     "conflict": {
         "drupal/drupal": "*"

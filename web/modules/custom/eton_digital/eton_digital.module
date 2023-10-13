@@ -1,0 +1,45 @@
+<?php
+
+/**
+ * Implementation of hook_mail()
+ */
+function eton_digital_mail($key, &$message, $params): void {
+  if ($key == 'eton_digital_mail') {
+    $message['from'] = \Drupal::config('system.site')->get('mail');
+    $message['subject'] = $params['subject'];
+    $message['body'] = $params['body'];
+  }
+}
+
+/**
+ * Implements hook_install().
+ */
+function eton_digital_install($is_syncing): void {
+  if ($is_syncing) {
+    return;
+  }
+  $config = \Drupal::configFactory()->getEditable('system.mail');
+  $mail_plugins = $config->get('interface');
+  if (in_array('eton_digital', array_keys($mail_plugins))) {
+    return;
+  }
+  $mail_plugins['eton_digital'] = 'eton_digital_mail';
+  $config->set('interface', $mail_plugins)->save();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function eton_digital_uninstall($is_syncing): void {
+  if ($is_syncing) {
+    return;
+  }
+  $config = \Drupal::configFactory()->getEditable('system.mail');
+  $mail_plugins = $config->get('interface');
+  if (!in_array('eton_digital', array_keys($mail_plugins)))
+  {
+    return;
+  }
+  unset($mail_plugins['eton_digital']);
+  $config->set('interface', $mail_plugins)->save();
+}

@@ -1,0 +1,7 @@
+eton_digital.job_application_form:
+  path: '/job-application'
+  defaults:
+    _form: Drupal\eton_digital\Form\EtonDigitalJobApplicationForm
+    _title: 'Job application'
+  requirements:
+    _permission: 'access content'
