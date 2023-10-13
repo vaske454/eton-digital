@@ -49,9 +49,8 @@ class JobApplicationsController extends ControllerBase {
   public function jobApplicationsList(): array {
     // Render an array for the job applications list.
     return [
-      '#theme' => 'job_applications',
       // Retrieve job applications data from the service.
-      '#results' => $this->jobApplicationService->getJobApplications(),
+      $this->jobApplicationService->getJobApplications(),
     ];
   }
 
