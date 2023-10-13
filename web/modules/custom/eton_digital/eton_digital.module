@@ -1,11 +1,22 @@
 <?php
 
 /**
- * Implementation of hook_mail()
+ * Implements hook_mail().
+ *
+ * This hook allows Drupal to use your custom mailer for specific email messages.
+ *
+ * @param string $key
+ *   The email key to determine which mailer to use.
+ * @param array $message
+ *   The email message to be sent.
+ * @param array $params
+ *   Additional parameters for customizing the email.
  */
-function eton_digital_mail($key, &$message, $params): void {
+function eton_digital_mail(string $key, array &$message, array $params): void {
+  // Check if the email key matches the one for your custom mailer.
   if ($key == 'eton_digital_mail') {
-    $message['from'] = \Drupal::config('system.site')->get('mail');
+    // Set the sender, subject, and body of the email message.
+    $message['from'] = $params['from'];
     $message['subject'] = $params['subject'];
     $message['body'] = $params['body'];
   }
@@ -13,33 +24,50 @@ function eton_digital_mail($key, &$message, $params): void {
 
 /**
  * Implements hook_install().
+ *
+ * This function is called when the module is being installed.
+ *
+ * @param bool $is_syncing
+ *   A boolean indicating whether the module is being installed during synchronization.
  */
-function eton_digital_install($is_syncing): void {
+function eton_digital_install(bool $is_syncing): void {
+  // Check if this is a module synchronization process.
   if ($is_syncing) {
     return;
   }
+  // Get the mail system configuration and add your custom mailer.
   $config = \Drupal::configFactory()->getEditable('system.mail');
   $mail_plugins = $config->get('interface');
+  // Check if your custom mailer is part of the mail plugins.
   if (in_array('eton_digital', array_keys($mail_plugins))) {
     return;
   }
+  // Add your custom mailer to the list of mail plugins.
   $mail_plugins['eton_digital'] = 'eton_digital_mail';
   $config->set('interface', $mail_plugins)->save();
 }
 
 /**
  * Implements hook_uninstall().
+ *
+ * This function is called when the module is being uninstalled.
+ *
+ * @param bool $is_syncing
+ *   A boolean indicating whether the module is being uninstalled during synchronization.
  */
-function eton_digital_uninstall($is_syncing): void {
+function eton_digital_uninstall(bool $is_syncing): void {
+  // Check if this is a module synchronization process.
   if ($is_syncing) {
     return;
   }
+  // Get the mail system configuration.
   $config = \Drupal::configFactory()->getEditable('system.mail');
   $mail_plugins = $config->get('interface');
-  if (!in_array('eton_digital', array_keys($mail_plugins)))
-  {
+  // Check if your custom mailer is not part of the mail plugins.
+  if (!in_array('eton_digital', array_keys($mail_plugins))) {
     return;
   }
+  // Remove your custom mailer from the list of mail plugins.
   unset($mail_plugins['eton_digital']);
   $config->set('interface', $mail_plugins)->save();
 }
