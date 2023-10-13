@@ -136,6 +136,25 @@ class EtonDigitalJobApplicationForm extends FormBase
    * @param FormStateInterface $form_state
    *   The form state.
    */
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+    // Get the value of the email field.
+    $email = $form_state->getValue('email');
+
+    // Check if the entered value is a valid email address.
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+      $form_state->setErrorByName('email', $this->t('The email address is not valid. Please enter a valid email address.'));
+    }
+  }
+
+
+  /**
+   * {@inheritdoc}
+   *
+   * @param array $form
+   *   The form structure.
+   * @param FormStateInterface $form_state
+   *   The form state.
+   */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     // Get form values.
     $name = $form_state->getValue('name');
