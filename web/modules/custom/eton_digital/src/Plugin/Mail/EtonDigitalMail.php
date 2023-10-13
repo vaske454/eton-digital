@@ -19,8 +19,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   description = @Translation("Sends an email using an external API specific to our Eton Digital module.")
  * )
  */
-class EtonDigitalMail implements MailInterface, ContainerFactoryPluginInterface
-{
+class EtonDigitalMail implements MailInterface, ContainerFactoryPluginInterface {
 
   /**
    * {@inheritdoc}

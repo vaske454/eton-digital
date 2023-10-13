@@ -11,8 +11,7 @@ use Drupal\Core\Form\FormStateInterface;
  *
  * @ingroup eton_digital
  */
-class EtonDigitalJobApplicationForm extends FormBase
-{
+class EtonDigitalJobApplicationForm extends FormBase {
 
   /**
    * {@inheritdoc}

@@ -1,0 +1,4 @@
+services:
+  eton_digital.job_application_data_fetcher:
+    class: Drupal\eton_digital\Services\JobApplicationDataFetcher
+    arguments: ['@database']
