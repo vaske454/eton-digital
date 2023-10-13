@@ -1,0 +1,30 @@
+{# File: job_applications.html.twig #}
+
+{% if results %}
+  <table>
+    <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Type</th>
+      <th>Technology</th>
+      <th>Message</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for row in results %}
+      <tr>
+        <td>{{ row.id }}</td>
+        <td>{{ row.name }}</td>
+        <td>{{ row.email }}</td>
+        <td>{{ row.type }}</td>
+        <td>{{ row.technology }}</td>
+        <td>{{ row.message|replace({'<br />' : '<br>'})|raw }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p>No job applications found.</p>
+{% endif %}

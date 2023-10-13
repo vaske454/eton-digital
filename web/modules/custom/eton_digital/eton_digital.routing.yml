@@ -5,3 +5,11 @@ eton_digital.job_application_form:
     _title: 'Job application'
   requirements:
     _permission: 'access content'
+
+eton_digital.job_applications_page:
+  path: '/job-applications-list'
+  defaults:
+    _controller: '\Drupal\eton_digital\Controller\JobApplicationsController::jobApplicationsList'
+    _title: 'Job Applications List'
+  requirements:
+    _permission: 'access content'

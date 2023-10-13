@@ -132,3 +132,17 @@ function eton_digital_schema(): array {
 
   return $schema;
 }
+
+/**
+ * Implements hook_theme().
+ */
+function eton_digital_theme($existing, $type, $theme, $path): array
+{
+  return [
+    'job_applications' => [
+      'variables' => [
+        'results' => [],
+      ],
+    ],
+  ];
+}
