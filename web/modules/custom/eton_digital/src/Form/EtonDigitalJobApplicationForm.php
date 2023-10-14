@@ -123,7 +123,7 @@ class EtonDigitalJobApplicationForm extends FormBase {
    * @return array
    *   The part of the form to update via AJAX.
    */
-  public function eton_digital_callback(array $form) {
+  public function eton_digital_callback(array $form): array {
     return $form['technology_wrapper'];
   }
 
