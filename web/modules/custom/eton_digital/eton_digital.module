@@ -132,3 +132,44 @@ function eton_digital_schema(): array {
 
   return $schema;
 }
+
+/**
+ * Implements hook_cron().
+ */
+function eton_digital_cron() {
+  $current_day = date('l');
+  $current_time = date('H:i');
+  $today = Drupal::time()->getCurrentTime();
+  // Get the timestamp for one week ago.
+  $one_week_ago = $today - (7 * 24 * 60 * 60);
+
+  if ($current_day == 'Monday' && $current_time == '08:00') {
+    $processed_emails = \Drupal::state()->get('eton_digital_cron_processed_emails', []);
+
+    $mail_manager = \Drupal::service('plugin.manager.mail');
+    $module = 'eton_digital';
+    $key = 'eton_digital_mail';
+
+    $query = Drupal::database()->select('job_applications', 'ja');
+    $query->fields('ja', ['email']);
+    $query->condition('ja.submitted', $one_week_ago, '>');
+    $results = $query->execute()->fetchAll();
+
+    foreach ($results as $result) {
+      $to = $result->email;
+      if (!in_array($to, $processed_emails)) {
+        $params = [
+          'from' => Drupal::config('system.site')->get('mail'),
+          'subject' => 'Job Application Cron',
+          'body' => ['Lorem ipsum dolor sit amet, consectetur adipisicing elit. Amet assumenda atque debitis eaque facilis incidunt inventore itaque iure labore libero nostrum odit officiis pariatur quisquam, repellendus similique, tenetur voluptates voluptatum.'],
+        ];
+
+        $mail_manager->mail($module, $key, $to, 'en', $params, NULL, TRUE);
+
+        $processed_emails[] = $to;
+      }
+    }
+
+    \Drupal::state()->set('eton_digital_cron_processed_emails', $processed_emails);
+  }
+}
