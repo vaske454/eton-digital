@@ -136,7 +136,7 @@ function eton_digital_schema(): array {
 /**
  * Implements hook_cron().
  */
-function eton_digital_cron() {
+function eton_digital_cron(): void {
   $current_day = date('l');
   $current_time = date('H:i');
   $today = Drupal::time()->getCurrentTime();
@@ -146,26 +146,19 @@ function eton_digital_cron() {
   if ($current_day == 'Monday' && $current_time == '08:00') {
     $processed_emails = \Drupal::state()->get('eton_digital_cron_processed_emails', []);
 
-    $mail_manager = \Drupal::service('plugin.manager.mail');
-    $module = 'eton_digital';
-    $key = 'eton_digital_mail';
-
     $query = Drupal::database()->select('job_applications', 'ja');
     $query->fields('ja', ['email']);
     $query->condition('ja.submitted', $one_week_ago, '>');
     $results = $query->execute()->fetchAll();
 
+    // Get the queue service.
+    $queue = \Drupal::queue('job_application_mail_sender');
+
     foreach ($results as $result) {
       $to = $result->email;
       if (!in_array($to, $processed_emails)) {
-        $params = [
-          'from' => Drupal::config('system.site')->get('mail'),
-          'subject' => 'Job Application Cron',
-          'body' => ['Lorem ipsum dolor sit amet, consectetur adipisicing elit. Amet assumenda atque debitis eaque facilis incidunt inventore itaque iure labore libero nostrum odit officiis pariatur quisquam, repellendus similique, tenetur voluptates voluptatum.'],
-        ];
-
-        $mail_manager->mail($module, $key, $to, 'en', $params, NULL, TRUE);
-
+        // Add email data to the queue for processing.
+        $queue->createItem(['email' => $to]);
         $processed_emails[] = $to;
       }
     }
