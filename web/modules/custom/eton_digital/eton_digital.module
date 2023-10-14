@@ -79,6 +79,8 @@ function eton_digital_uninstall(bool $is_syncing): void {
 
 /**
  * Implements hook_schema()
+ *
+ * Defines the database schema for the job_applications table.
  */
 function eton_digital_schema(): array {
   $schema = [];
@@ -135,6 +137,9 @@ function eton_digital_schema(): array {
 
 /**
  * Implements hook_cron().
+ *
+ * This function runs periodically to process job applications and send emails.
+ * It is scheduled to run on Mondays at 08:00.
  */
 function eton_digital_cron(): void {
   $current_day = date('l');

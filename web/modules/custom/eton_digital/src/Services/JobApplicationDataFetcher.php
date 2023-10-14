@@ -12,6 +12,12 @@ class JobApplicationDataFetcher {
 
   protected Connection $database;
 
+  /**
+   * Constructs a new JobApplicationDataFetcher object.
+   *
+   * @param \Drupal\Core\Database\Connection $database
+   *   The database connection.
+   */
   public function __construct(Connection $database) {
     $this->database = $database;
   }
@@ -34,63 +40,111 @@ class JobApplicationDataFetcher {
   /**
    * Retrieves a list of job applications from the database.
    *
+   * @return array
+   *   An array containing the rendered job application data.
    */
-  public function getJobApplications() {
+  public function getJobApplications(): array {
     // Define the database table to query.
     $table = 'job_applications';
     $limit = 5;
 
     // Build a database query to retrieve job applications.
-    $result = $this->database->select($table, 'ja')
-      ->fields('ja', ['id', 'name', 'email', 'type', 'technology', 'message'])
-      ->orderBy('id', 'DESC')
-      ->extend('Drupal\Core\Database\Query\PagerSelectExtender')->limit($limit)
-      ->execute()->fetchAll();
+    $result = $this->fetchJobApplications($table, $limit);
 
-    $data = [];
+    $data = $this->prepareData($result);
 
-    $params = \Drupal::request()->query->all();
-
-    if (empty($params) || $params['page'] == 0) {
-      $count = 1;
-    } elseif ($params['page'] == 1) {
-      $count = $params['page'] + $limit;
+    if (!empty($data)) {
+      $build = $this->buildTable($data);
     } else {
-      $count = $params['page'] + $limit;
-      $count++;
-    }
-
-    if (!empty($result)) {
-      foreach ($result as $row) {
-        $message = $row->message;
-        $brakedMessage = str_replace( "<br />", "\n", $message );
-        $data[] = [
-          'serial_no' => $count.".",
-          'name' => $row->name,
-          'email' => $row->email,
-          'type' => $row->type,
-          'technology' => $row->technology,
-          'message' => $brakedMessage,
-        ];
-        $count++;
-      }
-
-      $header = ['S_No.', 'Name', 'Email', 'Type', 'Technology', 'Message'];
-
-      $build['table'] = [
-        '#type' =>'table',
-        '#header' => $header,
-        '#rows'=> $data
-      ];
-
-      $build['pager'] = [
-        '#type' => 'pager'
-      ];
-    } else {
-      $build = ['#markup'=>'<p>No job applications found.</p>'];
+      $build = ['#markup' => '<p>No job applications found.</p>'];
     }
 
     // Execute the query and fetch the results.
     return $build;
   }
+
+  /**
+   * Fetches job applications from the database.
+   *
+   * @param string $table
+   *   The name of the database table.
+   * @param int $limit
+   *   The maximum number of records to retrieve.
+   *
+   * @return object[]
+   *   An array of job application records.
+   */
+  protected function fetchJobApplications(string $table, int $limit ): array {
+    return $this->database->select($table, 'ja')
+      ->fields('ja', ['id', 'name', 'email', 'type', 'technology', 'message'])
+      ->orderBy('id', 'DESC')
+      ->extend('Drupal\Core\Database\Query\PagerSelectExtender')->limit($limit)
+      ->execute()->fetchAll();
+  }
+
+  /**
+   * Prepares job application data for rendering.
+   *
+   * @param object[] $result
+   *   An array of job application records.
+   *
+   * @return array
+   *   An array containing the prepared job application data.
+   */
+  protected function prepareData(array $result): array {
+    $data = [];
+
+    if (!empty($result)) {
+      foreach ($result as $row) {
+        $message = $this->breakMessage($row->message);
+        $data[] = [
+          'name' => $row->name,
+          'email' => $row->email,
+          'type' => $row->type,
+          'technology' => $row->technology,
+          'message' => $message,
+        ];
+      }
+    }
+
+    return $data;
+  }
+
+  /**
+   * Replaces "<br />" with line breaks in a message.
+   *
+   * @param string $message
+   *   The original message.
+   *
+   * @return string The message with "<br />" replaced with line breaks.
+   */
+  protected function breakMessage(string $message): string {
+    return str_replace("<br />", "\n", $message);
+  }
+
+  /**
+   * Builds a table of job application data.
+   *
+   * @param array $data
+   *   An array of job application records.
+   *
+   * @return array
+   *   An array containing the rendered job application data in a table format.
+   */
+  protected function buildTable(array $data): array {
+    $header = ['Name', 'Email', 'Type', 'Technology', 'Message'];
+
+    $build['table'] = [
+      '#type' => 'table',
+      '#header' => $header,
+      '#rows' => $data,
+    ];
+
+    $build['pager'] = [
+      '#type' => 'pager',
+    ];
+
+    return $build;
+  }
+
 }
