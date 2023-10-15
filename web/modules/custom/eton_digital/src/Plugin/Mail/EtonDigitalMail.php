@@ -9,6 +9,7 @@ use Exception;
 use SendGrid;
 use SendGrid\Mail\Mail; // Include SendGrid's Mail class.
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Config\ConfigFactoryInterface;
 
 /**
  * Defines the Eton Digital mail backend.
@@ -20,6 +21,15 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * )
  */
 class EtonDigitalMail implements MailInterface, ContainerFactoryPluginInterface {
+
+  /**
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected ConfigFactoryInterface $configFactory;
+
+  public function __construct(ConfigFactoryInterface $config_factory) {
+    $this->configFactory = $config_factory;
+  }
 
   /**
    * {@inheritdoc}
@@ -37,7 +47,7 @@ class EtonDigitalMail implements MailInterface, ContainerFactoryPluginInterface 
    *   A new instance of this class.
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): ContainerFactoryPluginInterface|EtonDigitalMail|static {
-    return new static();
+    return new static($container->get('config.factory'));
   }
 
   /**
@@ -72,6 +82,8 @@ class EtonDigitalMail implements MailInterface, ContainerFactoryPluginInterface 
    *   Exception thrown if there is a type mismatch in the SendGrid Mail class.
    */
   public function mail(array $message): bool {
+    $config = $this->configFactory->get('eton_digital.sendgrid_api_key');
+    $api_key = $config->get('sendgrid_api_key');
     // Extract necessary data from the message array.
     $from = $message['from'];
     $subject = $message['subject'];
@@ -79,7 +91,7 @@ class EtonDigitalMail implements MailInterface, ContainerFactoryPluginInterface 
     $body = $message['body'];
 
     // Initialize SendGrid with your API key.
-    $sendgrid = new SendGrid('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');
+    $sendgrid = new SendGrid($api_key);
 
     // Create a new SendGrid email.
     $email = new Mail();

@@ -158,11 +158,11 @@ class EtonDigitalJobApplicationForm extends FormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     // Get form values.
-    $name = $form_state->getValue('name');
-    $email = $form_state->getValue('email');
-    $type = $form_state->getValue('type');
-    $technology = $form_state->getValue('technology');
-    $message = nl2br($form_state->getValue('message'));
+    $name = trim($form_state->getValue('name'));
+    $email = trim($form_state->getValue('email'));
+    $type = trim($form_state->getValue('type'));
+    $technology = trim($form_state->getValue('technology'));
+    $message = trim($form_state->getValue('message'));
     $submitted = Drupal::time()->getCurrentTime();
 
     // Email subject.
@@ -178,7 +178,7 @@ class EtonDigitalJobApplicationForm extends FormBase {
         'Email: ' . $email,
         'Type: ' . $type,
         'Technology: ' . $technology,
-        'Message: ' . "\n" . $message,
+        'Message: ' . $message,
         'Submitted: ' . $submitted,
       ],
     ];

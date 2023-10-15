@@ -4,11 +4,12 @@ namespace Drupal\eton_digital\Services;
 
 use Drupal\Core\Database\Connection;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\eton_digital\Interfaces\JobApplicationDataFetcherInterface;
 
 /**
  * Service for the fetching of the job application data
  */
-class JobApplicationDataFetcher {
+class JobApplicationDataFetcher implements JobApplicationDataFetcherInterface {
 
   protected Connection $database;
 

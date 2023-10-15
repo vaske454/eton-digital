@@ -13,3 +13,11 @@ eton_digital.job_applications_page:
     _title: 'Job Applications List'
   requirements:
     _permission: 'access content'
+
+eton_digital.sendgrid_api_key_form:
+  path: '/admin/config/system/sendgrid-api-key-configuration'
+  defaults:
+    _form: Drupal\eton_digital\Form\SendGridApiKeyForm
+    _title: 'SendGrid API Key'
+  requirements:
+    _permission: 'administer site configuration'
