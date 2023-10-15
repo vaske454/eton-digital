@@ -120,7 +120,9 @@ class JobApplicationDataFetcher implements JobApplicationDataFetcherInterface {
    * @return string The message with "<br />" replaced with line breaks.
    */
   protected function breakMessage(string $message): string {
-    return str_replace("<br />", "\n", $message);
+//    $some = str_replace("\r\n", "<br>", $message);
+//    $test = Html::decodeEntities($some);
+    return htmlspecialchars($message);
   }
 
   /**

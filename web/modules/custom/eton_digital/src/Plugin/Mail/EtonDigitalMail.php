@@ -55,17 +55,16 @@ class EtonDigitalMail implements MailInterface, ContainerFactoryPluginInterface 
    *
    * @param array $message
    *   An array of email message data.
-   *
-   * @return array
-   *   An array of email message data after formatting.
    */
-  public function format(array $message): array {
-    // Join the body array into one string.
-    $message['body'] = implode("\n\n", $message['body']);
-    // Convert any HTML to plain-text.
-    $message['body'] = MailFormatHelper::htmlToText($message['body']);
-    // Wrap the mail body for sending.
-    $message['body'] = MailFormatHelper::wrapMail($message['body']);
+  public function format(array $message) {
+    if ($message['key'] === 'eton_digital_mail') {
+      // Join the body array into one string.
+      $message['body'] = implode("\n\n", $message['body']);
+      // Convert any HTML to plain-text.
+      $message['body'] = MailFormatHelper::htmlToText($message['body']);
+      // Wrap the mail body for sending.
+      $message['body'] = MailFormatHelper::wrapMail($message['body']);
+    }
     return $message;
   }
 
@@ -75,49 +74,78 @@ class EtonDigitalMail implements MailInterface, ContainerFactoryPluginInterface 
    * @param array $message
    *   An array of email message data.
    *
-   * @return bool
-   *   TRUE if the email was sent successfully, FALSE if there was an error.
-   *
-   * @throws \SendGrid\Mail\TypeException
    *   Exception thrown if there is a type mismatch in the SendGrid Mail class.
+   * @throws \SendGrid\Mail\TypeException
    */
-  public function mail(array $message): bool {
+  public function mail(array $message) {
+    if ($message['key'] === 'eton_digital_mail') {
+      $api_key = $this->getSendGridApiKey();
+      [$from, $subject, $to, $body] = $this->extractMessageData($message);
+      $sendgrid = $this->initializeSendGrid($api_key);
+      $email = $this->createSendGridEmail($from, $to, $subject, $body);
+
+      try {
+        $response = $sendgrid->send($email);
+        if ($response->statusCode() === 202) {
+          return TRUE;
+        } else {
+          $this->handleSendGridError($response);
+          return FALSE;
+        }
+      } catch (Exception $e) {
+        $this->logSendGridError($e->getMessage());
+        return FALSE;
+      }
+    } else {
+      return TRUE;
+    }
+  }
+
+  protected function getSendGridApiKey() {
     $config = $this->configFactory->get('eton_digital.sendgrid_api_key');
-    $api_key = $config->get('sendgrid_api_key');
-    // Extract necessary data from the message array.
+    return $config->get('sendgrid_api_key');
+  }
+
+  protected function extractMessageData(array $message): array {
     $from = $message['from'];
     $subject = $message['subject'];
     $to = $message['to'];
     $body = $message['body'];
+    return [$from, $subject, $to, $body];
+  }
 
-    // Initialize SendGrid with your API key.
-    $sendgrid = new SendGrid($api_key);
+  protected function initializeSendGrid($api_key): SendGrid {
+    return new SendGrid($api_key);
+  }
 
-    // Create a new SendGrid email.
+  /**
+   * @throws \SendGrid\Mail\TypeException
+   */
+  protected function createSendGridEmail($from, $to, $subject, $body): Mail {
     $email = new Mail();
     $email->addTo($to);
     $email->setFrom($from);
     $email->setSubject($subject);
-
-    // Add the email body as plain text.
     $email->addContent("text/plain", $body);
-
-    try {
-      // Send the email using SendGrid.
-      $response = $sendgrid->send($email);
-      if ($response->statusCode() === 202) {
-        return TRUE; // Email sent successfully.
-      } else {
-        Drupal::logger('sendgrid')->error('Error sending email. Response code: @code, Message: @message', [
-          '@code' => $response->statusCode(),
-          '@message' => $response->body(),
-        ]);
-        return FALSE; // An error occurred while sending the email.
-      }
-    } catch (Exception $e) {
-      Drupal::logger('sendgrid')->error('Error sending email: @error', ['@error' => $e->getMessage()]);
-      return FALSE; // An error occurred during the email sending process.
-    }
+    return $email;
   }
+
+  protected function handleSendGridError($response) {
+    $body = $response->body();
+    $message = json_decode($body, true);
+    $messageBody = $message['errors'][0]['message'];
+    if (isset($messageBody)) {
+      Drupal::messenger()->addError($messageBody);
+    }
+    Drupal::logger('sendgrid')->error('Error sending email. Response code: @code, Message: @message', [
+      '@code' => $response->statusCode(),
+      '@message' => $response->body(),
+    ]);
+  }
+
+  protected function logSendGridError($errorMessage) {
+    Drupal::logger('sendgrid')->error('Error sending email: @error', ['@error' => $errorMessage]);
+  }
+
 
 }

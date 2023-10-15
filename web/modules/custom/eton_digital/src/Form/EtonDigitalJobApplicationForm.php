@@ -5,6 +5,9 @@ namespace Drupal\eton_digital\Form;
 use Drupal;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Component\Utility\Html;
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Class EtonDigitalJobApplicationForm
@@ -12,6 +15,23 @@ use Drupal\Core\Form\FormStateInterface;
  * @ingroup eton_digital
  */
 class EtonDigitalJobApplicationForm extends FormBase {
+
+  /**
+   * @var \Drupal\Core\Config\ConfigFactoryInterface
+   */
+  protected $configFactory;
+
+  /**
+   * @param \Drupal\Core\Config\ConfigFactoryInterface$config_factory
+   */
+  public function __construct(ConfigFactoryInterface $config_factory) {
+    $this->configFactory = $config_factory;
+  }
+
+  public static function create(ContainerInterface $container) {
+    return new static($container->get('config.factory'));
+  }
+
 
   /**
    * {@inheritdoc}
@@ -157,12 +177,14 @@ class EtonDigitalJobApplicationForm extends FormBase {
    * @throws \Exception
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
+    $config = $this->configFactory->get('eton_digital.sendgrid_api_key');
+    $apiKey = $config->get('sendgrid_api_key');
     // Get form values.
-    $name = trim($form_state->getValue('name'));
-    $email = trim($form_state->getValue('email'));
-    $type = trim($form_state->getValue('type'));
-    $technology = trim($form_state->getValue('technology'));
-    $message = trim($form_state->getValue('message'));
+    $name = trim(Html::escape($form_state->getValue('name')));
+    $email = trim(Html::escape($form_state->getValue('email')));
+    $type = $form_state->getValue('type');
+    $technology = $form_state->getValue('technology');
+    $message = trim(Html::escape($form_state->getValue('message')));
     $submitted = Drupal::time()->getCurrentTime();
 
     // Email subject.
@@ -179,33 +201,53 @@ class EtonDigitalJobApplicationForm extends FormBase {
         'Type: ' . $type,
         'Technology: ' . $technology,
         'Message: ' . $message,
-        'Submitted: ' . $submitted,
       ],
     ];
 
-    // Send email.
-    $result = Drupal::service('plugin.manager.mail')->mail('eton_digital', 'eton_digital_mail', $to, 'en', $params, NULL, TRUE);
+    if (trim($apiKey) !== '') {
+      // Send email.
+      $result = Drupal::service('plugin.manager.mail')->mail('eton_digital', 'eton_digital_mail', $to, 'en', $params, NULL, TRUE);
 
-    if (!$result['result']) {
-      Drupal::messenger()->addError('Unable to send email. Contact the site administrator if the problem persists.');
-      return;
+      if (!$result['result']) {
+        return;
+      }
+
+      //store data in database
+      $connection = Drupal::database();
+      $query = $connection->insert('job_applications')
+        ->fields([
+          'name' => $name,
+          'email' => $email,
+          'type ' => $type,
+          'technology' => $technology,
+          'message' => $message,
+          'submitted' => $submitted,
+        ]);
+      $query->execute();
+
+      // Success message.
+      Drupal::messenger()->addMessage('E-mail sent successfully.');
+    } else {
+
+      $result = Drupal::service('plugin.manager.mail')->mail('eton_digital_mail_regular', 'eton_digital_mail_regular', $to, 'en', $params, NULL, TRUE);
+
+      if ($result['result']) {
+        //store data in database
+        $connection = Drupal::database();
+        $query = $connection->insert('job_applications')
+          ->fields([
+            'name' => $name,
+            'email' => $email,
+            'type ' => $type,
+            'technology' => $technology,
+            'message' => $message,
+            'submitted' => $submitted,
+          ]);
+        $query->execute();
+        
+        Drupal::messenger()->addMessage('E-mail sent successfully.');
+      }
     }
-
-    //store data in database
-    $connection = Drupal::database();
-    $query = $connection->insert('job_applications')
-      ->fields([
-        'name' => $name,
-        'email' => $email,
-        'type ' => $type,
-        'technology' => $technology,
-        'message' => $message,
-        'submitted' => $submitted,
-      ]);
-    $query->execute();
-
-    // Success message.
-    Drupal::messenger()->addMessage('E-mail sent successfully.');
   }
 
 }

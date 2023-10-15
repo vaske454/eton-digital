@@ -14,11 +14,33 @@
  */
 function eton_digital_mail(string $key, array &$message, array $params): void {
   // Check if the email key matches the one for your custom mailer.
+  // Set the sender, subject, and body of the email message.
   if ($key == 'eton_digital_mail') {
-    // Set the sender, subject, and body of the email message.
     $message['from'] = $params['from'];
     $message['subject'] = $params['subject'];
     $message['body'] = $params['body'];
+  }
+}
+
+/**
+ * Implements hook_mail().
+ *
+ * This hook allows Drupal to use your custom mailer for specific email messages.
+ *
+ * @param string $key
+ *   The email key to determine which mailer to use.
+ * @param array $message
+ *   The email message to be sent.
+ * @param array $params
+ *   Additional parameters for customizing the email.
+ */
+function eton_digital_mail_regular_mail(string $key, array &$message, array $params): void {
+  // Check if the email key matches the one for your custom mailer.
+  // Set the sender, subject, and body of the email message.
+  if ($key == 'eton_digital_mail_regular') {
+    $message['subject'] = $params['subject'];
+    $message['body'] = $params['body'];
+    $message['headers']['From'] = $params['from'];
   }
 }
 
