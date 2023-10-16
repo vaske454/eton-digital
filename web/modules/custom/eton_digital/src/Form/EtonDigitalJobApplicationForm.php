@@ -67,6 +67,7 @@ class EtonDigitalJobApplicationForm extends FormBase {
       '#type' => 'textfield',
       '#title' => t('Name'),
       '#required' => TRUE,
+      '#maxlength' => 40
     ];
 
     // Email field.
@@ -74,6 +75,7 @@ class EtonDigitalJobApplicationForm extends FormBase {
       '#type' => 'email',
       '#title' => t('Email'),
       '#required' => TRUE,
+      '#maxlength' => 255
     ];
 
     // Type field with AJAX.
@@ -89,6 +91,7 @@ class EtonDigitalJobApplicationForm extends FormBase {
         'callback' => [$this, 'eton_digital_callback'], // Callback function name is updated
         'wrapper' => 'technology-wrapper',
       ],
+      '#required' => TRUE,
     ];
 
     // Technology wrapper container.
@@ -106,6 +109,7 @@ class EtonDigitalJobApplicationForm extends FormBase {
         'java' => t('Java'),
       ],
       '#default_value' => 'php',
+      '#required' => TRUE,
     ];
 
     // Check if type has been selected.
@@ -128,6 +132,7 @@ class EtonDigitalJobApplicationForm extends FormBase {
       '#type' => 'textarea',
       '#title' => t('Message'),
       '#required' => TRUE,
+      '#maxlength' => 1000
     ];
 
     // Submit button.
@@ -184,12 +189,28 @@ class EtonDigitalJobApplicationForm extends FormBase {
    *   The form state.
    */
   public function validateForm(array &$form, FormStateInterface $form_state) {
-    // Get the value of the email field.
-    $email = $form_state->getValue('email');
+    // Get the value of the name field.
+    $name = trim($form_state->getValue('name'));
 
-    // Check if the entered value is a valid email address.
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    // Check if the name field is empty or longer than 40 characters.
+    if (empty($name) || mb_strlen($name) > 40) {
+      $form_state->setErrorByName('name', $this->t('Name field is required and should not exceed 40 characters.'));
+    }
+
+    // Get the value of the email field.
+    $email = trim($form_state->getValue('email'));
+
+    // Check if the entered value is a valid email address or if the email field is empty or longer than 255 characters.
+    if (empty($email) || mb_strlen($email) > 255 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
       $form_state->setErrorByName('email', $this->t('The email address is not valid. Please enter a valid email address.'));
+    }
+
+    // Get the value of the message field.
+    $message = trim($form_state->getValue('message'));
+
+    // Check if the message field is empty or longer than 1000 characters.
+    if (empty($message) || mb_strlen($name) > 1000) {
+      $form_state->setErrorByName('message', $this->t('Message field is required and should not exceed 1000 characters.'));
     }
   }
 
