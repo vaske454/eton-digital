@@ -127,6 +127,12 @@ class JobApplicationDataFetcher implements JobApplicationDataFetcherInterface {
       '#type' => 'table',
       '#header' => $header,
       '#rows' => $data,
+      '#attributes' => ['class' => ['job-applications-table']],
+      '#attached' => [
+        'library' => [
+          'eton_digital/eton_digital-library',
+        ],
+      ],
     ];
 
     $build['pager'] = [

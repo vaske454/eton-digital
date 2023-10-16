@@ -1,0 +1,4 @@
+eton_digital-library:
+  css:
+    theme:
+      css/style.css: {}
