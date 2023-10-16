@@ -29,6 +29,7 @@ class EtonDigitalJobApplicationForm extends FormBase {
 
   /**
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
+   * @param \Drupal\eton_digital\Services\JobApplicationInsertData $jobApplicationInsertData
    */
   public function __construct(ConfigFactoryInterface $config_factory, JobApplicationInsertData $jobApplicationInsertData) {
     $this->configFactory = $config_factory;

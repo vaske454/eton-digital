@@ -6,14 +6,14 @@ use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Class SendGridApiKeyForm
+ * Form class for SendGrid API Key configuration.
  */
 class SendGridApiKeyForm extends ConfigFormBase {
 
   /**
    * {@inheritdoc}
    */
-  public static function create(ContainerInterface $container) {
+  public static function create(ContainerInterface $container): SendGridApiKeyForm|ConfigFormBase|static {
     return new static(
       $container->get('config.factory'),
     );
@@ -22,22 +22,27 @@ class SendGridApiKeyForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  protected function getEditableConfigNames() {
+  protected function getEditableConfigNames(): array {
+    // Get the name of the configuration that is editable.
     return ['eton_digital.sendgrid_api_key'];
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getFormId() {
+  public function getFormId(): string {
+    // Define the unique form ID for this form.
     return 'sendgrid_api_key_configuration_form';
   }
 
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state) {
+  public function buildForm(array $form, FormStateInterface $form_state): array {
+    // Load the SendGrid API key configuration.
     $config = $this->config('eton_digital.sendgrid_api_key');
+
+    // Create a form field for entering the SendGrid API key.
     $form['sendgrid_api_key'] = [
       '#type' => 'textfield',
       '#title' => $this->t('SendGrid API key'),
@@ -52,9 +57,11 @@ class SendGridApiKeyForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
+    // Save the entered SendGrid API key in the configuration.
     $this->config('eton_digital.sendgrid_api_key')
       ->set('sendgrid_api_key', $form_state->getValue('sendgrid_api_key'))
       ->save();
+
     parent::submitForm($form, $form_state);
   }
 }
