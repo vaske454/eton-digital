@@ -22,16 +22,15 @@ class EtonDigitalJobApplicationForm extends FormBase {
   protected $configFactory;
 
   /**
-   * @param \Drupal\Core\Config\ConfigFactoryInterface$config_factory
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    */
   public function __construct(ConfigFactoryInterface $config_factory) {
     $this->configFactory = $config_factory;
   }
 
-  public static function create(ContainerInterface $container) {
+  public static function create(ContainerInterface $container): EtonDigitalJobApplicationForm|static {
     return new static($container->get('config.factory'));
   }
-
 
   /**
    * {@inheritdoc}
@@ -79,7 +78,7 @@ class EtonDigitalJobApplicationForm extends FormBase {
       ],
       '#default_value' => 'backend',
       '#ajax' => [
-        'callback' => [$this, 'eton_digital_callback'],
+        'callback' => [$this, 'eton_digital_callback'], // Callback function name is updated
         'wrapper' => 'technology-wrapper',
       ],
     ];
@@ -124,6 +123,27 @@ class EtonDigitalJobApplicationForm extends FormBase {
     ];
 
     // Submit button.
+    $form['actions']['#type'] = 'actions';
+    $form['actions']['submit'] = [
+      '#type' => 'submit',
+      '#value' => $this->t('Send'),
+      '#button_type' => 'primary',
+    ];
+
+    // Submit button.
+    return $this->addSubmitButton($form);
+  }
+
+  /**
+   * Helper function to add the submit button to the form.
+   *
+   * @param array $form
+   *   The form structure.
+   *
+   * @return array
+   *   The updated form structure.
+   */
+  private function addSubmitButton(array $form): array {
     $form['actions']['#type'] = 'actions';
     $form['actions']['submit'] = [
       '#type' => 'submit',
@@ -177,8 +197,7 @@ class EtonDigitalJobApplicationForm extends FormBase {
    * @throws \Exception
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $config = $this->configFactory->get('eton_digital.sendgrid_api_key');
-    $apiKey = $config->get('sendgrid_api_key');
+    $apiKey = $this->configFactory->get('eton_digital.sendgrid_api_key')->get('sendgrid_api_key');
     // Get form values.
     $name = trim(Html::escape($form_state->getValue('name')));
     $email = trim(Html::escape($form_state->getValue('email')));
@@ -212,42 +231,53 @@ class EtonDigitalJobApplicationForm extends FormBase {
         return;
       }
 
-      //store data in database
-      $connection = Drupal::database();
-      $query = $connection->insert('job_applications')
-        ->fields([
-          'name' => $name,
-          'email' => $email,
-          'type ' => $type,
-          'technology' => $technology,
-          'message' => $message,
-          'submitted' => $submitted,
-        ]);
-      $query->execute();
+      // Store data in the database.
+      $this->storeApplicationData($name, $email, $type, $technology, $message, $submitted);
 
       // Success message.
       Drupal::messenger()->addMessage('E-mail sent successfully.');
     } else {
-
       $result = Drupal::service('plugin.manager.mail')->mail('eton_digital_mail_regular', 'eton_digital_mail_regular', $to, 'en', $params, NULL, TRUE);
 
       if ($result['result']) {
-        //store data in database
-        $connection = Drupal::database();
-        $query = $connection->insert('job_applications')
-          ->fields([
-            'name' => $name,
-            'email' => $email,
-            'type ' => $type,
-            'technology' => $technology,
-            'message' => $message,
-            'submitted' => $submitted,
-          ]);
-        $query->execute();
+        // Store data in the database.
+        $this->storeApplicationData($name, $email, $type, $technology, $message, $submitted);
 
         Drupal::messenger()->addMessage('E-mail sent successfully.');
       }
     }
+  }
+
+  /**
+   * Helper function to store application data in the database.
+   *
+   * @param string $name
+   *   The name.
+   * @param string $email
+   *   The email.
+   * @param string $type
+   *   The type.
+   * @param string $technology
+   *   The technology.
+   * @param string $message
+   *   The message.
+   * @param int $submitted
+   *   The timestamp of when the application was submitted.
+   *
+   * @throws \Exception
+   */
+  public function storeApplicationData(string $name, string $email, string $type, string $technology, string $message, int $submitted) {
+    $connection = Drupal::database();
+    $query = $connection->insert('job_applications')
+      ->fields([
+        'name' => $name,
+        'email' => $email,
+        'type ' => $type,
+        'technology' => $technology,
+        'message' => $message,
+        'submitted' => $submitted,
+      ]);
+    $query->execute();
   }
 
 }
