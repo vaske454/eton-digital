@@ -1,5 +1,5 @@
 name: Eton Digital
 description: Eton Digital module
 type: module
-core_version_requirement: ^10
+core_version_requirement: ^9 || ^10
 package: Custom
