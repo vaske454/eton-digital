@@ -8,6 +8,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Component\Utility\Html;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\eton_digital\Services\JobApplicationInsertData;
 
 /**
  * Class EtonDigitalJobApplicationForm
@@ -22,14 +23,20 @@ class EtonDigitalJobApplicationForm extends FormBase {
   protected $configFactory;
 
   /**
+   * @var \Drupal\eton_digital\Services\JobApplicationInsertData
+   */
+  protected JobApplicationInsertData $jobApplicationInsertData;
+
+  /**
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    */
-  public function __construct(ConfigFactoryInterface $config_factory) {
+  public function __construct(ConfigFactoryInterface $config_factory, JobApplicationInsertData $jobApplicationInsertData) {
     $this->configFactory = $config_factory;
+    $this->jobApplicationInsertData = $jobApplicationInsertData;
   }
 
   public static function create(ContainerInterface $container): EtonDigitalJobApplicationForm|static {
-    return new static($container->get('config.factory'));
+    return new static($container->get('config.factory'), $container->get('eton_digital.job_application_insert_data'));
   }
 
   /**
@@ -267,17 +274,16 @@ class EtonDigitalJobApplicationForm extends FormBase {
    * @throws \Exception
    */
   public function storeApplicationData(string $name, string $email, string $type, string $technology, string $message, int $submitted) {
-    $connection = Drupal::database();
-    $query = $connection->insert('job_applications')
-      ->fields([
+    $this->jobApplicationInsertData->insertJobApplication(
+      [
         'name' => $name,
         'email' => $email,
         'type ' => $type,
         'technology' => $technology,
         'message' => $message,
         'submitted' => $submitted,
-      ]);
-    $query->execute();
+      ]
+    );
   }
 
 }
