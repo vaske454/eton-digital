@@ -97,32 +97,18 @@ class JobApplicationDataFetcher implements JobApplicationDataFetcherInterface {
 
     if (!empty($result)) {
       foreach ($result as $row) {
-        $message = $this->breakMessage($row->message);
+        $brakeMessage = nl2br($row->message);
         $data[] = [
           'name' => $row->name,
           'email' => $row->email,
           'type' => $row->type,
           'technology' => $row->technology,
-          'message' => $message,
+          'message' => check_markup($brakeMessage, 'full_html'),
         ];
       }
     }
 
     return $data;
-  }
-
-  /**
-   * Replaces "<br />" with line breaks in a message.
-   *
-   * @param string $message
-   *   The original message.
-   *
-   * @return string The message with "<br />" replaced with line breaks.
-   */
-  protected function breakMessage(string $message): string {
-//    $some = str_replace("\r\n", "<br>", $message);
-//    $test = Html::decodeEntities($some);
-    return htmlspecialchars($message);
   }
 
   /**

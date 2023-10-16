@@ -184,7 +184,7 @@ class EtonDigitalJobApplicationForm extends FormBase {
     $email = trim(Html::escape($form_state->getValue('email')));
     $type = $form_state->getValue('type');
     $technology = $form_state->getValue('technology');
-    $message = trim(Html::escape($form_state->getValue('message')));
+    $message = trim($form_state->getValue('message'));
     $submitted = Drupal::time()->getCurrentTime();
 
     // Email subject.
