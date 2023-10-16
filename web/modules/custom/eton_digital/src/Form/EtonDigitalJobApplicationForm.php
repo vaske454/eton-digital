@@ -204,7 +204,7 @@ class EtonDigitalJobApplicationForm extends FormBase {
       ],
     ];
 
-    if (trim($apiKey) !== '') {
+    if ($apiKey !== null && trim($apiKey) !== '') {
       // Send email.
       $result = Drupal::service('plugin.manager.mail')->mail('eton_digital', 'eton_digital_mail', $to, 'en', $params, NULL, TRUE);
 

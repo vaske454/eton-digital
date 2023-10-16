@@ -72,8 +72,8 @@ class JobApplicationMailSender extends QueueWorkerBase implements ContainerFacto
   public function processItem($data) {
     $to = $data['email'];
 
-    $module = 'eton_digital';
-    $key = 'eton_digital_mail';
+    $module = 'eton_digital_mail_regular';
+    $key = 'eton_digital_mail_regular';
 
     $params = [
       'from' => Drupal::config('system.site')->get('mail'),
