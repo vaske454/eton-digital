@@ -227,7 +227,7 @@ class EtonDigitalJobApplicationForm extends FormBase {
         'Email: ' . $email,
         'Type: ' . $type,
         'Technology: ' . $technology,
-        'Message: ' . $message,
+        'Message: ' . "\n" . $message,
       ],
     ];
 

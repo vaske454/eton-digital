@@ -55,6 +55,9 @@ class EtonDigitalMail implements MailInterface, ContainerFactoryPluginInterface 
    *
    * @param array $message
    *   An array of email message data.
+   *
+   * @return array
+   *   The formatted email message.
    */
   public function format(array $message): array {
     $message['from'] = $message['params']['from'];
@@ -75,8 +78,11 @@ class EtonDigitalMail implements MailInterface, ContainerFactoryPluginInterface 
    * @param array $message
    *   An array of email message data.
    *
-   *   Exception thrown if there is a type mismatch in the SendGrid Mail class.
+   * @return bool
+   *   TRUE if the email was sent successfully, FALSE otherwise.
+   *
    * @throws \SendGrid\Mail\TypeException
+   *   Exception thrown if there is a type mismatch in the SendGrid Mail class.
    */
   public function mail(array $message): bool {
     $api_key = $this->getSendGridApiKey();
@@ -98,11 +104,26 @@ class EtonDigitalMail implements MailInterface, ContainerFactoryPluginInterface 
     }
   }
 
-  protected function getSendGridApiKey() {
+  /**
+   * Gets the SendGrid API key from configuration.
+   *
+   * @return string
+   *   The SendGrid API key.
+   */
+  protected function getSendGridApiKey(): string {
     $config = $this->configFactory->get('eton_digital.sendgrid_api_key');
     return $config->get('sendgrid_api_key');
   }
 
+  /**
+   * Extracts message data.
+   *
+   * @param array $message
+   *   An array of email message data.
+   *
+   * @return array
+   *   An array of extracted message data.
+   */
   protected function extractMessageData(array $message): array {
     $from = $message['from'];
     $subject = $message['subject'];
@@ -111,14 +132,37 @@ class EtonDigitalMail implements MailInterface, ContainerFactoryPluginInterface 
     return [$from, $subject, $to, $body];
   }
 
-  protected function initializeSendGrid($api_key): SendGrid {
+  /**
+   * Initializes the SendGrid API.
+   *
+   * @param string $api_key
+   *   The SendGrid API key.
+   *
+   * @return \SendGrid
+   *   The SendGrid instance.
+   */
+  protected function initializeSendGrid(string $api_key): SendGrid {
     return new SendGrid($api_key);
   }
 
   /**
+   * Creates a SendGrid email message.
+   *
+   * @param string $from
+   *   The sender's email address.
+   * @param string $to
+   *   The recipient's email address.
+   * @param string $subject
+   *   The email subject.
+   * @param string $body
+   *   The email body.
+   *
+   * @return \SendGrid\Mail\Mail
+   *   The SendGrid email message.
+   *
    * @throws \SendGrid\Mail\TypeException
    */
-  protected function createSendGridEmail($from, $to, $subject, $body): Mail {
+  protected function createSendGridEmail(string $from, string $to, string $subject, string $body): Mail {
     $email = new Mail();
     $email->addTo($to);
     $email->setFrom($from);
@@ -127,7 +171,13 @@ class EtonDigitalMail implements MailInterface, ContainerFactoryPluginInterface 
     return $email;
   }
 
-  protected function handleSendGridError($response) {
+  /**
+   * Handles SendGrid error responses.
+   *
+   * @param mixed $response
+   *   The SendGrid response object.
+   */
+  protected function handleSendGridError(mixed $response) {
     $body = $response->body();
     $message = json_decode($body, true);
     $messageBody = $message['errors'][0]['message'];
@@ -140,7 +190,13 @@ class EtonDigitalMail implements MailInterface, ContainerFactoryPluginInterface 
     ]);
   }
 
-  protected function logSendGridError($errorMessage) {
+  /**
+   * Logs SendGrid errors.
+   *
+   * @param string $errorMessage
+   *   The error message to log.
+   */
+  protected function logSendGridError(string $errorMessage) {
     Drupal::logger('sendgrid')->error('Error sending email: @error', ['@error' => $errorMessage]);
   }
 
