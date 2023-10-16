@@ -56,15 +56,16 @@ class EtonDigitalMail implements MailInterface, ContainerFactoryPluginInterface 
    * @param array $message
    *   An array of email message data.
    */
-  public function format(array $message) {
-    if ($message['key'] === 'eton_digital_mail') {
-      // Join the body array into one string.
-      $message['body'] = implode("\n\n", $message['body']);
-      // Convert any HTML to plain-text.
-      $message['body'] = MailFormatHelper::htmlToText($message['body']);
-      // Wrap the mail body for sending.
-      $message['body'] = MailFormatHelper::wrapMail($message['body']);
-    }
+  public function format(array $message): array {
+    $message['from'] = $message['params']['from'];
+    $message['subject'] = $message['params']['subject'];
+    $message['body'] = $message['params']['body'];
+    // Join the body array into one string.
+    $message['body'] = implode("\n\n", $message['body']);
+    // Convert any HTML to plain-text.
+    $message['body'] = MailFormatHelper::htmlToText($message['body']);
+    // Wrap the mail body for sending.
+    $message['body'] = MailFormatHelper::wrapMail($message['body']);
     return $message;
   }
 
@@ -77,27 +78,23 @@ class EtonDigitalMail implements MailInterface, ContainerFactoryPluginInterface 
    *   Exception thrown if there is a type mismatch in the SendGrid Mail class.
    * @throws \SendGrid\Mail\TypeException
    */
-  public function mail(array $message) {
-    if ($message['key'] === 'eton_digital_mail') {
-      $api_key = $this->getSendGridApiKey();
-      [$from, $subject, $to, $body] = $this->extractMessageData($message);
-      $sendgrid = $this->initializeSendGrid($api_key);
-      $email = $this->createSendGridEmail($from, $to, $subject, $body);
+  public function mail(array $message): bool {
+    $api_key = $this->getSendGridApiKey();
+    [$from, $subject, $to, $body] = $this->extractMessageData($message);
+    $sendgrid = $this->initializeSendGrid($api_key);
+    $email = $this->createSendGridEmail($from, $to, $subject, $body);
 
-      try {
-        $response = $sendgrid->send($email);
-        if ($response->statusCode() === 202) {
-          return TRUE;
-        } else {
-          $this->handleSendGridError($response);
-          return FALSE;
-        }
-      } catch (Exception $e) {
-        $this->logSendGridError($e->getMessage());
+    try {
+      $response = $sendgrid->send($email);
+      if ($response->statusCode() === 202) {
+        return TRUE;
+      } else {
+        $this->handleSendGridError($response);
         return FALSE;
       }
-    } else {
-      return TRUE;
+    } catch (Exception $e) {
+      $this->logSendGridError($e->getMessage());
+      return FALSE;
     }
   }
 

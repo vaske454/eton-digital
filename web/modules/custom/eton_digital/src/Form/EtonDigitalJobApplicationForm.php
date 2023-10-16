@@ -244,7 +244,7 @@ class EtonDigitalJobApplicationForm extends FormBase {
             'submitted' => $submitted,
           ]);
         $query->execute();
-        
+
         Drupal::messenger()->addMessage('E-mail sent successfully.');
       }
     }
